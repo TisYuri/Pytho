@@ -32,3 +32,37 @@ df['Age_num'] = df['Age'].map(age_map)
 # Calculate and print the mean of the numeric age values
 mean_age = df['Age_num'].mean()
 print("Estimated mean age of survey participants:", round(mean_age, 1))
+
+# Load the dataset directly from the URL
+file_path = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/VYPrOu0Vs3I0hKLLjiPGrA/survey-data-with-duplicate.csv"
+df = pd.read_csv(file_path)
+
+# Display the first few rows
+print(df.head())
+
+exact_dup_mask = df.duplicated(keep=False)   # marks any row that has an identical twin (all columns)
+num_exact_duplicates = exact_dup_mask.sum()
+print(f"\nNumber of rows that have an exact duplicate (all columns equal): {num_exact_duplicates}")
+
+if num_exact_duplicates:
+    print("\nSample of exact duplicate rows:")
+    print(df[exact_dup_mask].head(10))
+
+    exact_dups = df.duplicated()
+print("Exact duplicates:", exact_dups.sum())
+
+# Check for duplicates based on key identifying fields
+subset_cols = ["ResponseId", "Age", "Employment", "RemoteWork", "Country", "MainBranch"]
+subset_cols = [c for c in subset_cols if c in df.columns]  # ensure they exist
+
+subset_dups = df.duplicated(subset=subset_cols)
+print("Duplicates based on subset:", subset_dups.sum())
+
+# Remove duplicate rows (keep the first occurrence)
+df_clean = df.drop_duplicates(subset=subset_cols, keep="first")
+
+# Verify how many rows were removed
+print("Removed:", df.shape[0] - df_clean.shape[0])
+
+df_clean.to_csv("cleaned_survey_data.csv", index=False)
+print("File 'cleaned_survey_data.csv' exported successfully.")
