@@ -1,25 +1,37 @@
-from bs4 import BeautifulSoup # this module helps in web scrapping.
-import requests  # this module helps us to download a webpage
-url = "http://www.ibm.com"
-# get the contents of the webpage in text format and store in a variable called data
-data  = requests.get(url).text 
-soup = BeautifulSoup(data,"html.parser")  # create a soup object using the variable 'data'
-for link in soup.find_all('a'):  # in html anchor/link is represented by the tag <a>
-    print(link.get('href'))
+# Import the required libraries
+from bs4 import BeautifulSoup
+import requests
+import csv
 
-for link in soup.find_all('img'):# in html image is represented by the tag <img>
-    print(link.get('src'))
+# URL containing the data
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DA0321EN-SkillsNetwork/labs/datasets/Programming_Languages.html"
 
-#The below URL contains a html table with data about colors and color codes.
-URL = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DA0321EN-SkillsNetwork/labs/datasets/HTMLColorCodes.html"
-# get the contents of the webpage in text format and store in a variable called data
-data  = requests.get(URL).text
-soup = BeautifulSoup(data,"html.parser")
-#find a html table in the web page
-table = soup.find('table') # in html table is represented by the tag <table>
-for row in table.find_all('tr'): # in html table row is represented by the tag <tr>
-    # Get all columns in each row.
-    cols = row.find_all('td') # in html a column is represented by the tag <td>
-    color_name = cols[2].getText() # store the value in column 3 as color_name
-    color_code = cols[3].getText() # store the value in column 4 as color_code
-    print("{}--->{}".format(color_name,color_code))
+# Download the webpage
+data = requests.get(url).text
+
+# Create a BeautifulSoup object
+soup = BeautifulSoup(data, "html.parser")
+
+# Find the table in the webpage
+table = soup.find('table')
+
+# Prepare a list to store the data
+scraped_data = []
+
+# Loop through the rows of the table
+for row in table.find_all('tr'):
+    cols = row.find_all('td')
+    if len(cols) >= 2:  # Ensure the row has at least 2 columns
+        language = cols[0].get_text()
+        avg_salary = cols[1].get_text()
+        scraped_data.append([language, avg_salary])
+
+# Save the data into a CSV file
+with open('popular-languages.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    # Write the header
+    writer.writerow(["Programming Language", "Average Annual Salary"])
+    # Write the scraped data
+    writer.writerows(scraped_data)
+
+print("Data has been saved to 'popular-languages.csv'")
